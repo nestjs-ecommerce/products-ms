@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import { HttpStatus, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -7,6 +7,7 @@ import { PaginationOptionsDto } from 'src/common/dto/pagination/pagination-optio
 import { PaginationDto } from 'src/common/dto/pagination/pagination.dto';
 import { ProductDto } from './dto/product.dto';
 import { paginatePrisma } from 'src/common/utils/pagination.util';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class ProductsService {
@@ -53,6 +54,7 @@ export class ProductsService {
       );
     } catch (error) {
       this.logger.error('Error fetching products:', error);
+
       throw new InternalServerErrorException('Failed to fetch products');
     }
   }
@@ -66,12 +68,11 @@ export class ProductsService {
       });
 
       if (!productFound) {
-        this.logger.warn(`Product with id ${id} not found`);
-
-        throw new NotFoundException(`Product with id ${id} not found`);
+        throw new RpcException({
+          code: HttpStatus.NOT_FOUND,
+          message: 'Product not found',
+        });
       }
-
-      this.logger.log(`Product found: ${productFound.id}`)
 
       return new ProductDto({
         createdAt: productFound.createdAt,
@@ -84,7 +85,11 @@ export class ProductsService {
     } catch (error) {
       this.logger.error('Error fetching product:', error);
 
-      throw new InternalServerErrorException('Failed to fetch product');
+      if (error instanceof RpcException) {
+        throw error;
+      } else {
+        throw new InternalServerErrorException('Failed to fetch product');
+      }
     }
   }
 

@@ -30,23 +30,23 @@ export class ProductsController {
   }
 
   @MessagePattern({
-    cmd: 'find_product',
+    cmd: 'find_one_product',
   })
-  findOne(@Payload('id', new ParseIntPipe()) id: number): Promise<ProductDto> {
+  findOne(@Payload('id') id: number): Promise<ProductDto> {
     return this.productsService.findOne(id);
   }
 
   @MessagePattern({
     cmd: 'update_product',
   })
-  update(@Payload('id', new ParseIntPipe()) id: number, @Payload() updateProductDto: UpdateProductDto): Promise<ProductDto> {
+  update(@Payload('id') id: number, @Payload() updateProductDto: UpdateProductDto): Promise<ProductDto> {
     return this.productsService.update(id, updateProductDto);
   }
 
   @MessagePattern({
     cmd: 'remove_product',
   })
-  remove(@Payload('id', new ParseIntPipe()) id: number): Promise<ProductDto> {
+  remove(@Payload('id') id: number): Promise<ProductDto> {
     return this.productsService.remove(id);
   }
 }
