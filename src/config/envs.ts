@@ -3,15 +3,17 @@ import * as joi from "joi";
 
 interface Envs {
     PORT: number;
+    NATS_SERVERS: string[];
 }
 
 const envsSchema = joi.object({
     PORT: joi.number().required().default(3000),
+    NATS_SERVERS: joi.array().items(joi.string()).required().default([]),
 }).unknown(true);
 
-const { error, value } = envsSchema.validate(process.env, {
-    allowUnknown: true,
-    abortEarly: false,
+const { error, value } = envsSchema.validate({
+    ...process.env,
+    NATS_SERVERS: process.env.NATS_SERVERS ? process.env.NATS_SERVERS.split(",") : [],
 });
 
 if (error) {
@@ -23,4 +25,5 @@ const envsValidates: Envs = value as Envs;
 
 export const envs = {
     PORT: envsValidates.PORT,
+    NATS_SERVERS: envsValidates.NATS_SERVERS,
 }

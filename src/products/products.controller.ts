@@ -1,15 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseIntPipe } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PaginationOptionsDto } from 'src/common/dto/pagination/pagination-options.dto';
 import { ProductDto } from './dto/product.dto';
 import { PaginationDto } from 'src/common/dto/pagination/pagination.dto';
-import { ApiTags } from '@nestjs/swagger';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 
-@Controller('products')
-@ApiTags('Products')
+@Controller()
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
@@ -48,5 +46,12 @@ export class ProductsController {
   })
   remove(@Payload('id') id: number): Promise<ProductDto> {
     return this.productsService.remove(id);
+  }
+
+  @MessagePattern({
+    cmd: 'validate_products',
+  })
+  validate(@Payload() productIds: number[]): Promise<ProductDto[]> {
+    return this.productsService.validateProducts(productIds);
   }
 }

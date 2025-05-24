@@ -153,4 +153,36 @@ export class ProductsService {
       throw new InternalServerErrorException('Failed to delete product');
     }
   }
+
+  async validateProducts(productIds: number[]): Promise<ProductDto[]> {
+    try {
+      const products = await this.prismaService.product.findMany({
+        where: {
+          id: { in: Array.from(new Set(productIds)) },
+        },
+      });
+
+      if (products.length !== productIds.length) {
+        this.logger.warn('Some products not found:', productIds);
+
+        throw new RpcException({
+          code: HttpStatus.NOT_FOUND,
+          message: 'Some products not found',
+        });
+      }
+
+      return products.map(product => new ProductDto(product));
+    } catch (error) {
+      this.logger.error('Error validating products:', error);
+
+      if (error instanceof RpcException) {
+        throw error;
+      }
+
+      throw new RpcException({
+        code: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Failed to validate products',
+      });
+    }
+  }
 }
